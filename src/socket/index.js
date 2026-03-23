@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
+import ENV from "../config/env";
 
-const socket = io("http://localhost:5000", {
+const socket = io(ENV.SOCKET_URL, {
   autoConnect: true, // connect immediately
   transports: ["websocket"], // faster
 });
