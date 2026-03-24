@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FiCamera, FiShield, FiMic, FiRefreshCw } from "react-icons/fi";
 import Swal from "sweetalert2";
-import * as faceapi from "face-api.js";
+import * as faceapi from "@vladmandic/face-api";
 import kycService from "../../services/kycService";
 
 const VideoKYCSession = () => {
@@ -20,7 +20,7 @@ const VideoKYCSession = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isDark = useSelector((state) => state.theme.mode === "dark");
-  
+
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const capturedImagesRef = useRef({ pan: null, selfie: null });
@@ -165,25 +165,25 @@ const VideoKYCSession = () => {
 
     const limits = isMobileViewport
       ? {
-          brightnessMin: 38,
-          brightnessMax: 238,
-          varianceMin: 240,
-          edgeMin: 0.025,
-          edgeMax: 0.52,
-          bandVarianceMin: 140,
-          bandEdgeMin: 0.015,
-          bandEdgeMax: 0.45,
-        }
+        brightnessMin: 38,
+        brightnessMax: 238,
+        varianceMin: 240,
+        edgeMin: 0.025,
+        edgeMax: 0.52,
+        bandVarianceMin: 140,
+        bandEdgeMin: 0.015,
+        bandEdgeMax: 0.45,
+      }
       : {
-          brightnessMin: 45,
-          brightnessMax: 232,
-          varianceMin: 300,
-          edgeMin: 0.035,
-          edgeMax: 0.56,
-          bandVarianceMin: 170,
-          bandEdgeMin: 0.02,
-          bandEdgeMax: 0.48,
-        };
+        brightnessMin: 45,
+        brightnessMax: 232,
+        varianceMin: 300,
+        edgeMin: 0.035,
+        edgeMax: 0.56,
+        bandVarianceMin: 170,
+        bandEdgeMin: 0.02,
+        bandEdgeMax: 0.48,
+      };
 
     const checks = {
       brightness:
@@ -473,6 +473,7 @@ const VideoKYCSession = () => {
             ]);
             if (cancelled) return;
             faceDetectorRef.current = { ready: true };
+            console.log("Face-api models loaded successfully");
             return;
           } catch (err) {
             lastErr = err;
@@ -580,10 +581,10 @@ const VideoKYCSession = () => {
       }
 
       try {
-        const inputSize = isMobileViewport ? 160 : 224;
+        const inputSize = isMobileViewport ? 224 : 320;
         const options = new faceapi.TinyFaceDetectorOptions({
           inputSize,
-          scoreThreshold: 0.5,
+          scoreThreshold: 0.4,
         });
 
         frameSeqRef.current += 1;
@@ -670,8 +671,8 @@ const VideoKYCSession = () => {
           // Use a learned open-eye baseline; if we don't have it yet, don't
           // classify eyes-closed this frame.
           const openBaseline = earOpenRef.current;
-          // Lower min clamp to be more tolerant across devices/angles.
-          const closedThreshold = openBaseline == null ? null : clamp(openBaseline * 0.62, 0.06, 0.3);
+          // Even more generous threshold (0.75 instead of 0.68)
+          const closedThreshold = openBaseline == null ? null : clamp(openBaseline * 0.75, 0.1, 0.35);
 
           const eyesClosed = closedThreshold == null ? false : ear < closedThreshold;
           if (eyesClosed) {
@@ -693,6 +694,8 @@ const VideoKYCSession = () => {
               earOpenRef.current = earOpenRef.current == null ? ear : (0.9 * earOpenRef.current + 0.1 * ear);
             }
           }
+          // Log EAR for debugging
+          console.log(`EAR: ${ear.toFixed(3)}, Threshold: ${closedThreshold?.toFixed(3)}, Baseline: ${openBaseline?.toFixed(3)}`);
         }
 
         if (selfieLooksStable) {
@@ -777,13 +780,14 @@ const VideoKYCSession = () => {
           setAutoStatus("Selfie captured successfully.");
           captureFrame("selfie");
         }
-      } catch {
+      } catch (err) {
+        console.error("Face detection error:", err);
         setGuideState("neutral");
         setAutoStatus("Face detection unavailable right now. Use manual capture if needed.");
       }
     };
 
-    const intervalMs = step === 3 ? 250 : 700;
+    const intervalMs = step === 3 ? 110 : 650;
     let analysisRunning = false;
     analysisIntervalRef.current = setInterval(() => {
       if (analysisRunning) return;
@@ -904,7 +908,7 @@ const VideoKYCSession = () => {
       } else {
         const reason = verificationMessage || (
           !faceMatch && !panMatch ? "Face mismatch and PAN mismatch" :
-          !faceMatch ? "Face mismatch" : "PAN mismatch"
+            !faceMatch ? "Face mismatch" : "PAN mismatch"
         );
         Swal.fire({
           icon: "error",
@@ -925,21 +929,21 @@ const VideoKYCSession = () => {
   const guideTone =
     guideState === "valid"
       ? {
-          ring: "border-emerald-400/80 shadow-[0_0_40px_rgba(52,211,153,0.35)]",
-          panel: "text-emerald-300 bg-emerald-500/15 border-emerald-400/30",
-          label: "ALIGNED",
-        }
+        ring: "border-emerald-400/80 shadow-[0_0_40px_rgba(52,211,153,0.35)]",
+        panel: "text-emerald-300 bg-emerald-500/15 border-emerald-400/30",
+        label: "ALIGNED",
+      }
       : guideState === "invalid"
         ? {
-            ring: "border-red-400/80 shadow-[0_0_40px_rgba(248,113,113,0.30)]",
-            panel: "text-red-300 bg-red-500/15 border-red-400/30",
-            label: "ADJUST",
-          }
+          ring: "border-red-400/80 shadow-[0_0_40px_rgba(248,113,113,0.30)]",
+          panel: "text-red-300 bg-red-500/15 border-red-400/30",
+          label: "ADJUST",
+        }
         : {
-            ring: "border-indigo-400/60 shadow-[0_0_35px_rgba(99,102,241,0.25)]",
-            panel: "text-indigo-200 bg-indigo-500/15 border-indigo-400/30",
-            label: "SCANNING",
-          };
+          ring: "border-indigo-400/60 shadow-[0_0_35px_rgba(99,102,241,0.25)]",
+          panel: "text-indigo-200 bg-indigo-500/15 border-indigo-400/30",
+          label: "SCANNING",
+        };
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${isDark ? "bg-[#0f172a]" : "bg-[#f4f7fe]"}`}>
@@ -948,11 +952,11 @@ const VideoKYCSession = () => {
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg sm:h-11 sm:w-11">
-                <FiShield size={20} />
+              <FiShield size={20} />
             </div>
             <div className="min-w-0">
-                <h2 className={`text-sm font-black uppercase tracking-[0.22em] sm:text-base ${isDark ? "text-white" : "text-slate-900"}`}>Secure Session</h2>
-                <p className="truncate text-[10px] font-bold uppercase tracking-widest text-indigo-500 sm:text-[11px]">ID: {id}</p>
+              <h2 className={`text-sm font-black uppercase tracking-[0.22em] sm:text-base ${isDark ? "text-white" : "text-slate-900"}`}>Secure Session</h2>
+              <p className="truncate text-[10px] font-bold uppercase tracking-widest text-indigo-500 sm:text-[11px]">ID: {id}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-start rounded-full px-3 py-1.5 sm:self-auto">
@@ -965,186 +969,180 @@ const VideoKYCSession = () => {
       {/* Main Video Viewport */}
       <div className="relative flex flex-1 items-center justify-center px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         <div className="relative w-full max-w-6xl overflow-hidden rounded-[1.5rem] border-2 border-indigo-600/20 bg-black shadow-2xl sm:rounded-[2rem] lg:rounded-[2.5rem] lg:border-4">
-            <div className="aspect-[3/4] sm:aspect-video">
-            <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                muted 
-                className={`h-full w-full object-cover ${cameraFacingMode === "user" ? "scale-x-[-1]" : ""}`} 
+          <div className="aspect-[3/4] sm:aspect-video">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`h-full w-full object-cover ${cameraFacingMode === "user" ? "scale-x-[-1]" : ""}`}
             />
-            </div>
-            
-            {/* HUD Overlays */}
-            <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 sm:p-5 lg:p-8">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="w-fit max-w-[75%] rounded-2xl border border-white/20 bg-black/40 p-3 backdrop-blur-md sm:max-w-none sm:p-4">
-                        <p className="mb-1 text-[9px] font-bold uppercase text-white/60 sm:text-[10px]">Session Status</p>
-                        <p className={`flex items-center gap-2 text-[11px] font-black sm:text-xs ${
-                          cameraState.status === "ready"
-                            ? "text-green-400"
-                            : cameraState.status === "error"
-                              ? "text-red-400"
-                              : "text-amber-300"
-                        }`}>
-                            <FiMic className={cameraState.status === "loading" ? "animate-pulse" : "animate-bounce"} />
-                            {cameraState.status === "ready"
-                              ? "CAMERA_STREAM: OK"
-                              : cameraState.status === "error"
-                                ? "CAMERA_STREAM: BLOCKED"
-                                : "CAMERA_STREAM: SWITCHING"}
-                        </p>
-                    </div>
-                    <div className="flex gap-2 self-start">
-                        <button
-                          type="button"
-                          onClick={() => void switchCamera()}
-                          disabled={cameraState.status === "loading"}
-                          className={`pointer-events-auto flex items-center gap-2 rounded-xl border border-white/20 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-white shadow-lg backdrop-blur-md transition sm:px-4 sm:text-[10px] ${
-                            cameraState.status === "loading"
-                              ? "cursor-not-allowed bg-black/25 text-white/60"
-                              : "bg-black/45 hover:bg-black/60"
-                          }`}
-                        >
-                          <FiRefreshCw />
-                          {cameraFacingMode === "user" ? "Front Cam" : "Back Cam"}
-                        </button>
-                        <div className="self-start rounded-xl bg-indigo-600 px-3 py-2 text-[9px] font-black uppercase tracking-[0.22em] text-white shadow-lg sm:px-4 sm:text-[10px]">
-                            AI GUIDED
-                        </div>
-                    </div>
-                </div>
+          </div>
 
-                {/* Instruction Card */}
-                <div className="mb-2 flex justify-center sm:mb-4">
-                    <div className="w-full max-w-md rounded-[1.75rem] border border-indigo-500/30 bg-black/60 p-4 text-center shadow-2xl backdrop-blur-xl sm:p-5 lg:p-6">
-                        <p className="mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-indigo-400 sm:text-[10px]">Instructions</p>
-                        <h3 className="text-base font-bold leading-tight text-white sm:text-lg lg:text-xl">
-                            {step === 1 && (
-                              cameraState.status === "error"
-                                ? cameraState.message
-                                : cameraState.status === "loading"
-                                  ? cameraState.message
-                                  : "Welcome! Ready to begin?"
-                            )}
-                            {step === 2 && "Hold your PAN Card within the frame."}
-                            {step === 3 && "Smile! Align your face for a selfie."}
-                            {step === 4 && "Analyzing Identity Data..."}
-                        </h3>
-                        {cameraState.status === "loading" && step >= 2 && step <= 3 && (
-                          <p className="mt-3 text-xs text-white/70">{cameraState.message}</p>
-                        )}
-                        {cameraState.status === "ready" && step >= 2 && step <= 3 && (
-                          <div className="mt-3 flex flex-col items-center gap-2">
-                            <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${guideTone.panel}`}>
-                              {guideTone.label}
-                            </span>
-                            <p className="text-xs text-white/70">
-                              {step === 2
-                                ? `PAN frames: ${panStableCount}/${AUTO_PAN_STABLE_FRAMES}`
-                                : `Face frames: ${selfieStableCount}/${AUTO_FACE_STABLE_FRAMES}`}
-                            </p>
-                            <p className="text-xs text-white/75">{autoStatus}</p>
-                          </div>
-                        )}
-                        {cameraState.status === "loading" && step === 1 && (
-                          <p className="mt-3 text-xs text-white/70">Starting mobile camera preview...</p>
-                        )}
-                        {cameraState.status === "error" && (
-                          <button
-                            type="button"
-                            onClick={() => void startVideo()}
-                            className="pointer-events-auto mt-4 rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-900 transition hover:bg-slate-100"
-                          >
-                            Retry Camera
-                          </button>
-                        )}
-                    </div>
+          {/* HUD Overlays */}
+          <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 sm:p-5 lg:p-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="w-fit max-w-[75%] rounded-2xl border border-white/20 bg-black/40 p-3 backdrop-blur-md sm:max-w-none sm:p-4">
+                <p className="mb-1 text-[9px] font-bold uppercase text-white/60 sm:text-[10px]">Session Status</p>
+                <p className={`flex items-center gap-2 text-[11px] font-black sm:text-xs ${cameraState.status === "ready"
+                    ? "text-green-400"
+                    : cameraState.status === "error"
+                      ? "text-red-400"
+                      : "text-amber-300"
+                  }`}>
+                  <FiMic className={cameraState.status === "loading" ? "animate-pulse" : "animate-bounce"} />
+                  {cameraState.status === "ready"
+                    ? "CAMERA_STREAM: OK"
+                    : cameraState.status === "error"
+                      ? "CAMERA_STREAM: BLOCKED"
+                      : "CAMERA_STREAM: SWITCHING"}
+                </p>
+              </div>
+              <div className="flex gap-2 self-start">
+                <button
+                  type="button"
+                  onClick={() => void switchCamera()}
+                  disabled={cameraState.status === "loading"}
+                  className={`pointer-events-auto flex items-center gap-2 rounded-xl border border-white/20 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-white shadow-lg backdrop-blur-md transition sm:px-4 sm:text-[10px] ${cameraState.status === "loading"
+                      ? "cursor-not-allowed bg-black/25 text-white/60"
+                      : "bg-black/45 hover:bg-black/60"
+                    }`}
+                >
+                  <FiRefreshCw />
+                  {cameraFacingMode === "user" ? "Front Cam" : "Back Cam"}
+                </button>
+                <div className="self-start rounded-xl bg-indigo-600 px-3 py-2 text-[9px] font-black uppercase tracking-[0.22em] text-white shadow-lg sm:px-4 sm:text-[10px]">
+                  AI GUIDED
                 </div>
+              </div>
             </div>
 
-            {/* Scanning Frame for PAN/Face */}
-            {(step === 2 || step === 3) && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {/* Instruction Card */}
+            <div className="mb-2 flex justify-center sm:mb-4">
+              <div className="w-full max-w-md rounded-[1.75rem] border border-indigo-500/30 bg-black/60 p-4 text-center shadow-2xl backdrop-blur-xl sm:p-5 lg:p-6">
+                <p className="mb-2 text-[9px] font-black uppercase tracking-[0.2em] text-indigo-400 sm:text-[10px]">Instructions</p>
+                <h3 className="text-base font-bold leading-tight text-white sm:text-lg lg:text-xl">
+                  {step === 1 && (
+                    cameraState.status === "error"
+                      ? cameraState.message
+                      : cameraState.status === "loading"
+                        ? cameraState.message
+                        : "Welcome! Ready to begin?"
+                  )}
+                  {step === 2 && "Hold your PAN Card within the frame."}
+                  {step === 3 && "Smile! Align your face for a selfie."}
+                  {step === 4 && "Analyzing Identity Data..."}
+                </h3>
+                {cameraState.status === "loading" && step >= 2 && step <= 3 && (
+                  <p className="mt-3 text-xs text-white/70">{cameraState.message}</p>
+                )}
+                {cameraState.status === "ready" && step >= 2 && step <= 3 && (
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${guideTone.panel}`}>
+                      {guideTone.label}
+                    </span>
+                    <p className="text-xs text-white/70">
+                      {step === 2
+                        ? `PAN frames: ${panStableCount}/${AUTO_PAN_STABLE_FRAMES}`
+                        : `Face frames: ${selfieStableCount}/${AUTO_FACE_STABLE_FRAMES}`}
+                    </p>
+                    <p className="text-xs text-white/75">{autoStatus}</p>
+                  </div>
+                )}
+                {cameraState.status === "loading" && step === 1 && (
+                  <p className="mt-3 text-xs text-white/70">Starting mobile camera preview...</p>
+                )}
+                {cameraState.status === "error" && (
+                  <button
+                    type="button"
+                    onClick={() => void startVideo()}
+                    className="pointer-events-auto mt-4 rounded-xl bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-slate-900 transition hover:bg-slate-100"
+                  >
+                    Retry Camera
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Scanning Frame for PAN/Face */}
+          {(step === 2 || step === 3) && (
+                <div className={`absolute inset-0 flex items-center justify-center pointer-events-none`}>
                     <div className={`border-4 border-dashed animate-pulse transition-all duration-300 ${guideTone.ring} ${
                         step === 2
                           ? "h-[30%] w-[70%] rounded-3xl sm:h-1/2 sm:w-[58%]"
                           : isMobileViewport
-                            ? "h-[56%] w-[68%] rounded-[2rem]"
-                            : "h-[50%] w-[52%] rounded-[2.25rem]"
+                            ? "h-[50%] w-[65%] rounded-[100%]"
+                            : "h-[62%] w-[26%] rounded-[100%]"
                     }`}></div>
                 </div>
-            )}
+          )}
         </div>
       </div>
 
       {/* Control Footer */}
       <div className={`border-t px-4 py-4 sm:px-6 sm:py-5 lg:px-8 ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"}`}>
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center gap-3 sm:flex-row">
-        {step === 1 && (
-          <button
-            disabled={cameraState.status !== "ready"}
-            onClick={() => guideUser(2)}
-            className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs lg:px-12 ${
-              cameraState.status === "ready"
-                ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
-                : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
-            }`}
-          >
-            I'm Ready
-          </button>
-        )}
+          {step === 1 && (
+            <button
+              disabled={cameraState.status !== "ready"}
+              onClick={() => guideUser(2)}
+              className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs lg:px-12 ${cameraState.status === "ready"
+                  ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
+                  : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
+                }`}
+            >
+              I'm Ready
+            </button>
+          )}
 
-        {step === 2 && (
-          <button
-            type="button"
-            disabled={cameraState.status !== "ready" || guideState !== "valid"}
-            onClick={() => captureFrame("pan")}
-            className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs ${
-              cameraState.status === "ready" && guideState === "valid"
-                ? "bg-emerald-600 text-white shadow-emerald-600/30 active:scale-95 hover:bg-emerald-700"
-                : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
-            }`}
-          >
-            <FiCamera /> Capture PAN
-          </button>
-        )}
+          {step === 2 && (
+            <button
+              type="button"
+              disabled={cameraState.status !== "ready" || guideState !== "valid"}
+              onClick={() => captureFrame("pan")}
+              className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs ${cameraState.status === "ready" && guideState === "valid"
+                  ? "bg-emerald-600 text-white shadow-emerald-600/30 active:scale-95 hover:bg-emerald-700"
+                  : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
+                }`}
+            >
+              <FiCamera /> Capture PAN
+            </button>
+          )}
 
-        {step === 3 && (
-          <button
-            type="button"
-            disabled={cameraState.status !== "ready" || !selfieFaceReady}
-            onClick={() => captureFrame("selfie")}
-            className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs ${
-              cameraState.status === "ready" && selfieFaceReady
-                ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
-                : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
-            }`}
-          >
-            <FiCamera /> Capture Face
-          </button>
-        )}
+          {step === 3 && (
+            <button
+              type="button"
+              disabled={cameraState.status !== "ready" || !selfieFaceReady}
+              onClick={() => captureFrame("selfie")}
+              className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs ${cameraState.status === "ready" && selfieFaceReady
+                  ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
+                  : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
+                }`}
+            >
+              <FiCamera /> Capture Face
+            </button>
+          )}
 
-        <button
+          <button
             type="button"
             onClick={() => void switchCamera()}
             disabled={cameraState.status === "loading"}
-            className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl border border-indigo-500/20 px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest transition sm:w-auto sm:px-8 sm:text-xs ${
-              cameraState.status === "loading"
+            className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl border border-indigo-500/20 px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest transition sm:w-auto sm:px-8 sm:text-xs ${cameraState.status === "loading"
                 ? "cursor-not-allowed bg-slate-200 text-slate-400"
                 : "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/15"
-            }`}
-        >
+              }`}
+          >
             <FiRefreshCw />
             {cameraFacingMode === "user" ? "Switch To Back" : "Switch To Front"}
-        </button>
-        
-        {step === 4 && (
+          </button>
+
+          {step === 4 && (
             <div className="flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 px-5 py-4 sm:w-auto sm:px-8">
-                <div className="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
-                <span className="text-center text-[11px] font-black uppercase tracking-widest text-indigo-500 sm:text-xs">Processing Vision AI...</span>
+              <div className="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+              <span className="text-center text-[11px] font-black uppercase tracking-widest text-indigo-500 sm:text-xs">Processing Vision AI...</span>
             </div>
-        )}
+          )}
         </div>
       </div>
 

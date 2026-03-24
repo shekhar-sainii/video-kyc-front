@@ -16,8 +16,13 @@ const ProfilePage = lazy(() => import("../pages/user/ProfilePage"));
 
 /* --- ADMIN PAGES --- */
 const DashboardPage = lazy(() => import("../pages/admin/dashboard"));
+<<<<<<< HEAD
 const UsersAdminPage = lazy(() => import("../pages/admin/users"));
 const AuditLogs = lazy(() => import("../pages/admin/audit-logs"));
+=======
+const UsersAdminPage = lazy(() => import("../pages/admin/users/index"));
+const AuditLogs = lazy(() => import("../pages/admin/audit-logs/index"));
+>>>>>>> 5a7bd3f (Improve Auto detect)
 const KYCQueue = lazy(() => import("../pages/admin/KYCQueue"));
 const AdminKYCReview = lazy(() => import("../pages/admin/dashboard/AdminKYCReview"));
 

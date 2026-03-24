@@ -12,6 +12,7 @@ const KYCApplicationForm = () => {
     const sigCanvas = useRef(null);
 
     const [form, setForm] = useState({
+        full_name: "",
         pan_number: "",
         photo: null,
         photoPreview: null,
@@ -32,36 +33,82 @@ const KYCApplicationForm = () => {
 
     const clearSignature = () => sigCanvas.current.clear();
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        const pan = form.pan_number.toUpperCase();
+        const fullName = form.full_name.trim();
 
-  if (!panRegex.test(form.pan_number.toUpperCase())) {
-    return Swal.fire("Invalid PAN", "Please enter a valid PAN", "error");
-  }
+        if (!fullName) {
+          return Swal.fire("Name Required", "Please enter your full name as per PAN card", "warning");
+        }
 
-  if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
-    return Swal.fire("Signature Required", "Please provide your digital signature.", "warning");
-  }
+        if (!panRegex.test(pan)) {
+            return Swal.fire("Invalid PAN", "Please enter a valid 10-digit PAN", "error");
+        }
 
-  if (!form.photo) {
-    return Swal.fire("Photo Required", "Please upload a photo.", "warning");
-  }
+        // Advanced Validation
+        const fourthChar = pan[3];
+        const fifthChar = pan[4];
+        const VALID_TYPES = ["P", "C", "H", "A", "B", "G", "J", "L", "F", "T"];
 
-  try {
-    setLoading(true);
-    const signatureData = sigCanvas.current
-      .getCanvas()
-      .toDataURL("image/png");
+        if (!VALID_TYPES.includes(fourthChar)) {
+          return Swal.fire("Suspicious PAN", `Invalid entity type '${fourthChar}'. Please check your card.`, "error");
+        }
 
-    const formData = new FormData();
+        // 4th Char Rule: Individual Check (User is likely Individual)
+        if (fourthChar !== "P" && fullName.split(" ").length > 0) {
+           const confirm = await Swal.fire({
+             title: "Is this a Personal PAN?",
+             text: `The 4th character '${fourthChar}' indicates a non-individual entity. Individuals usually have 'P'. Proceed anyway?`,
+             icon: "warning",
+             showCancelButton: true,
+           });
+           if (!confirm.isConfirmed) return;
+        }
 
-    formData.append("panNumber", form.pan_number.toUpperCase());
-    formData.append("signature", signatureData);
-    formData.append("uploadedPhoto", form.photo);
+        // 5th Char Rule: Name Initial
+        const nameParts = fullName.split(/\s+/);
+        let expectedInitial = "";
+        
+        if (fourthChar === "P") {
+          const surname = nameParts[nameParts.length - 1];
+          expectedInitial = surname ? surname[0].toUpperCase() : "";
+        } else {
+          expectedInitial = nameParts[0] ? nameParts[0][0].toUpperCase() : "";
+        }
 
-    await kycService.submitKyc(formData);
+        if (fifthChar !== expectedInitial) {
+           return Swal.fire(
+             "PAN Structure Error", 
+             `The 5th character '${fifthChar}' does not match your name initial '${expectedInitial}'. Please verify your PAN.`, 
+             "error"
+           );
+        }
+
+        if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
+            return Swal.fire("Signature Required", "Please provide your digital signature.", "warning");
+        }
+
+        if (!form.photo) {
+            return Swal.fire("Photo Required", "Please upload a photo.", "warning");
+        }
+
+        try {
+            setLoading(true);
+            const signatureData = sigCanvas.current
+                .getCanvas()
+                .toDataURL("image/png");
+
+            const formData = new FormData();
+
+            formData.append("fullName", fullName);
+            formData.append("panNumber", pan);
+            formData.append("signature", signatureData);
+            formData.append("uploadedPhoto", form.photo);
+
+            await kycService.submitKyc(formData);
 
     Swal.fire({
       icon: "success",
@@ -102,6 +149,21 @@ const handleSubmit = async (e) => {
 
                     {/* Left Column: PAN & Photo */}
                     <div className="space-y-8">
+                        {/* Full Name Input */}
+                        <div className={`p-8 rounded-[2rem] border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
+                            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">
+                                Full Name (As per PAN Card)
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="SHEKHAR SAINI"
+                                value={form.full_name}
+                                onChange={(e) => setForm({ ...form, full_name: e.target.value.toUpperCase() })}
+                                className={`w-full p-4 rounded-2xl border-2 outline-none font-bold text-lg transition-all ${isDark ? "bg-slate-800 border-slate-700 text-white focus:border-indigo-500" : "bg-slate-50 border-slate-100 focus:bg-white focus:border-indigo-600"
+                                    }`}
+                            />
+                        </div>
+
                         {/* PAN Card Input */}
                         <div className={`p-8 rounded-[2rem] border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">
