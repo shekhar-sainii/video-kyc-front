@@ -150,7 +150,7 @@ const KYCApplicationForm = () => {
                     {/* Left Column: PAN & Photo */}
                     <div className="space-y-8">
                         {/* Full Name Input */}
-                        <div className={`p-8 rounded-[2rem] border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
+                        <div className={`p-8 rounded-4xl border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">
                                 Full Name (As per PAN Card)
                             </label>
@@ -165,7 +165,7 @@ const KYCApplicationForm = () => {
                         </div>
 
                         {/* PAN Card Input */}
-                        <div className={`p-8 rounded-[2rem] border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
+                        <div className={`p-8 rounded-4xl border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">
                                 <FiCreditCard /> PAN Card Number
                             </label>
@@ -181,7 +181,7 @@ const KYCApplicationForm = () => {
                         </div>
 
                         {/* Photo Upload */}
-                        <div className={`p-8 rounded-[2rem] border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
+                        <div className={`p-8 rounded-4xl border-2 transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-6">
                                 <FiUploadCloud /> Passport Size Photo
                             </label>
@@ -199,7 +199,7 @@ const KYCApplicationForm = () => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <label className={`w-full h-48 border-2 border-dashed rounded-[2rem] flex flex-col items-center justify-center cursor-pointer transition-all ${isDark ? "border-slate-700 hover:border-indigo-500 bg-slate-800/50" : "border-slate-200 hover:border-indigo-600 bg-slate-50"
+                                    <label className={`w-full h-48 border-2 border-dashed rounded-4xl flex flex-col items-center justify-center cursor-pointer transition-all ${isDark ? "border-slate-700 hover:border-indigo-500 bg-slate-800/50" : "border-slate-200 hover:border-indigo-600 bg-slate-50"
                                         }`}>
                                         <FiUploadCloud size={32} className="text-slate-400 mb-2" />
                                         <span className="text-xs font-bold text-slate-500">Click to upload selfie</span>
@@ -211,7 +211,7 @@ const KYCApplicationForm = () => {
                     </div>
 
                     {/* Right Column: Signature */}
-                    <div className={`p-8 rounded-[2rem] border-2 flex flex-col transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
+                    <div className={`p-8 rounded-4xl border-2 flex flex-col transition-all ${isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"}`}>
                         <div className="flex justify-between items-center mb-6">
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">
                                 <FiEdit3 /> Digital Signature
@@ -236,7 +236,7 @@ const KYCApplicationForm = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-500/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-4xl font-black uppercase tracking-[0.2em] shadow-2xl shadow-indigo-500/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
                         >
                             {loading ? "Processing Data..." : <>Finalize Application <FiCheckCircle /></>}
                         </button>

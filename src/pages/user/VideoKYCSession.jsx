@@ -985,10 +985,10 @@ const VideoKYCSession = () => {
               <div className="w-fit max-w-[75%] rounded-2xl border border-white/20 bg-black/40 p-3 backdrop-blur-md sm:max-w-none sm:p-4">
                 <p className="mb-1 text-[9px] font-bold uppercase text-white/60 sm:text-[10px]">Session Status</p>
                 <p className={`flex items-center gap-2 text-[11px] font-black sm:text-xs ${cameraState.status === "ready"
-                    ? "text-green-400"
-                    : cameraState.status === "error"
-                      ? "text-red-400"
-                      : "text-amber-300"
+                  ? "text-green-400"
+                  : cameraState.status === "error"
+                    ? "text-red-400"
+                    : "text-amber-300"
                   }`}>
                   <FiMic className={cameraState.status === "loading" ? "animate-pulse" : "animate-bounce"} />
                   {cameraState.status === "ready"
@@ -1004,8 +1004,8 @@ const VideoKYCSession = () => {
                   onClick={() => void switchCamera()}
                   disabled={cameraState.status === "loading"}
                   className={`pointer-events-auto flex items-center gap-2 rounded-xl border border-white/20 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-white shadow-lg backdrop-blur-md transition sm:px-4 sm:text-[10px] ${cameraState.status === "loading"
-                      ? "cursor-not-allowed bg-black/25 text-white/60"
-                      : "bg-black/45 hover:bg-black/60"
+                    ? "cursor-not-allowed bg-black/25 text-white/60"
+                    : "bg-black/45 hover:bg-black/60"
                     }`}
                 >
                   <FiRefreshCw />
@@ -1067,15 +1067,14 @@ const VideoKYCSession = () => {
 
           {/* Scanning Frame for PAN/Face */}
           {(step === 2 || step === 3) && (
-                <div className={`absolute inset-0 flex items-center justify-center pointer-events-none`}>
-                    <div className={`border-4 border-dashed animate-pulse transition-all duration-300 ${guideTone.ring} ${
-                        step === 2
-                          ? "h-[30%] w-[70%] rounded-3xl sm:h-1/2 sm:w-[58%]"
-                          : isMobileViewport
-                            ? "h-[50%] w-[65%] rounded-[100%]"
-                            : "h-[62%] w-[26%] rounded-[100%]"
-                    }`}></div>
-                </div>
+            <div className={`absolute inset-0 flex items-center justify-center pointer-events-none`}>
+              <div className={`border-4 border-dashed animate-pulse transition-all duration-300 ${guideTone.ring} ${step === 2
+                  ? "h-[30%] w-[70%] rounded-3xl sm:h-1/2 sm:w-[58%]"
+                  : isMobileViewport
+                    ? "h-[50%] w-[65%] rounded-[100%]"
+                    : "h-[62%] w-[26%] rounded-[100%]"
+                }`}></div>
+            </div>
           )}
         </div>
       </div>
@@ -1088,8 +1087,8 @@ const VideoKYCSession = () => {
               disabled={cameraState.status !== "ready"}
               onClick={() => guideUser(2)}
               className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs lg:px-12 ${cameraState.status === "ready"
-                  ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
-                  : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
+                ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
+                : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
                 }`}
             >
               I'm Ready
@@ -1102,8 +1101,8 @@ const VideoKYCSession = () => {
               disabled={cameraState.status !== "ready" || guideState !== "valid"}
               onClick={() => captureFrame("pan")}
               className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs ${cameraState.status === "ready" && guideState === "valid"
-                  ? "bg-emerald-600 text-white shadow-emerald-600/30 active:scale-95 hover:bg-emerald-700"
-                  : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
+                ? "bg-emerald-600 text-white shadow-emerald-600/30 active:scale-95 hover:bg-emerald-700"
+                : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
                 }`}
             >
               <FiCamera /> Capture PAN
@@ -1116,8 +1115,8 @@ const VideoKYCSession = () => {
               disabled={cameraState.status !== "ready" || !selfieFaceReady}
               onClick={() => captureFrame("selfie")}
               className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest shadow-xl transition-all sm:w-auto sm:px-10 sm:text-xs ${cameraState.status === "ready" && selfieFaceReady
-                  ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
-                  : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
+                ? "bg-indigo-600 text-white shadow-indigo-600/30 active:scale-95 hover:bg-indigo-700"
+                : "cursor-not-allowed bg-slate-400 text-white/80 shadow-none"
                 }`}
             >
               <FiCamera /> Capture Face
@@ -1129,8 +1128,8 @@ const VideoKYCSession = () => {
             onClick={() => void switchCamera()}
             disabled={cameraState.status === "loading"}
             className={`flex w-full max-w-sm items-center justify-center gap-3 rounded-2xl border border-indigo-500/20 px-6 py-4 text-center text-[11px] font-black uppercase tracking-widest transition sm:w-auto sm:px-8 sm:text-xs ${cameraState.status === "loading"
-                ? "cursor-not-allowed bg-slate-200 text-slate-400"
-                : "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/15"
+              ? "cursor-not-allowed bg-slate-200 text-slate-400"
+              : "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/15"
               }`}
           >
             <FiRefreshCw />

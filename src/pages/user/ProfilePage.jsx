@@ -200,8 +200,8 @@ const ProfilePage = () => {
     <div className={`min-h-screen py-10 px-6 transition-colors duration-300 ${isDark ? "bg-[#0f172a]" : "bg-[#f4f7fe]"}`}>
       <div className="max-w-5xl mx-auto">
         <div className={`relative rounded-[2.5rem] overflow-hidden border mb-10 ${isDark ? "bg-[#1a2b4b] border-slate-700 shadow-2xl" : "bg-white border-slate-200 shadow-sm"}`}>
-          <div className="h-44 bg-gradient-to-r from-indigo-600 to-blue-700 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
+          <div className="h-44 bg-linear-to-r from-indigo-600 to-blue-700 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent"></div>
           </div>
 
           <div className="px-10 pb-10">
