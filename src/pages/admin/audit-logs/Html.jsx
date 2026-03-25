@@ -1,5 +1,8 @@
 import React from "react";
+
 import { FiShield, FiUser, FiClock, FiGlobe, FiSearch } from "react-icons/fi";
+import BeautifulLoader from "../../common/BeautifulLoader";
+
 
 const Html = ({ data, loading, isDark }) => {
   return (
@@ -28,10 +31,12 @@ const Html = ({ data, loading, isDark }) => {
         isDark ? "bg-[#1a2b4b] border-slate-700" : "bg-white border-slate-100 shadow-sm"
       }`}>
         {loading ? (
-          <div className="p-20 text-center text-blue-500 font-bold animate-pulse text-xs tracking-widest uppercase">
-            Decrypting System Logs...
+          <div className="py-20">
+            <BeautifulLoader text="Decrypting System Logs..." fullScreen={false} />
+
           </div>
         ) : (
+
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className={`border-b ${isDark ? "border-slate-700 bg-slate-800/40" : "bg-slate-50 border-slate-100"}`}>

@@ -17,6 +17,8 @@ import { useNavigate } from "react-router-dom";
 import { logout, loginSuccess } from "../../features/auth/authSlice";
 import userService from "../../services/userService";
 import Swal from "sweetalert2";
+import BeautifulLoader from "../../components/common/BeautifulLoader";
+
 
 const getBackendOrigin = () => {
   const configuredUrl = import.meta.env.VITE_AUTH_SERVICE_URL;
@@ -186,15 +188,9 @@ const ProfilePage = () => {
   };
 
   if (loading) {
-    return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? "bg-[#0f172a]" : "bg-[#f4f7fe]"}`}>
-        <div className="flex items-center gap-3 text-indigo-500 font-bold">
-          <FiLoader className="animate-spin" />
-          Loading profile...
-        </div>
-      </div>
-    );
+    return <BeautifulLoader text="Accessing your Identity Vault..." />;
   }
+
 
   return (
     <div className={`min-h-screen py-10 px-6 transition-colors duration-300 ${isDark ? "bg-[#0f172a]" : "bg-[#f4f7fe]"}`}>
